@@ -626,8 +626,10 @@ Item {
     // Settings › Display's pending change: keep | revert | status.
     function display(action: string): string {
       if (action === "menu") root.displayMenu()
-      else if (action === "keep") DisplayService.keep()
-      else if (action === "revert") DisplayService.revert()
+      // Without hyprmoncfg the pending change is DirectDisplay's.
+      else if (action === "keep") { if (DirectDisplay.pending) DirectDisplay.keep(); else DisplayService.keep() }
+      else if (action === "revert") { if (DirectDisplay.pending) DirectDisplay.revert(); else DisplayService.revert() }
+      if (DirectDisplay.pending) return "confirming " + DirectDisplay.pendingSeconds
       return DisplayService.confirming ? "confirming " + DisplayService.seconds : DisplayService.previewPending ? "applying" : "idle"
     }
     // Any bar popout by Omacale's own name (network, bluetooth, audio,

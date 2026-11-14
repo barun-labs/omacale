@@ -81,6 +81,9 @@ Singleton {
   // Omarchy panels/audio/Model.js nodeLabel / friendlyDeviceLabel.
   function friendly(text) {
     return String(text || "").trim()
+      // "Core Ultra 200H/200V Series Processors HD Audio Headphones": the
+      // chipset says nothing and hides the port's name in a narrow list.
+      .replace(/^.*\bHD Audio\s+(?=\S)/, "")
       .replace(/^sof-soundwire\s+/i, "").replace(/^built-?in audio\s+/i, "")
       .replace(/\s+Output$/i, "").replace(/\s+Input$/i, "")
       .replace(/\bMicrophones\b/g, "Microphone")

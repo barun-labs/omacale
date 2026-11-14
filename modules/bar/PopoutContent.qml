@@ -9,6 +9,8 @@ import Quickshell.Services.UPower
 import Quickshell.Bluetooth
 import Quickshell.Services.Pipewire
 import Quickshell.Networking
+import Quickshell.Io
+import "../../services/AudioRoutes.js" as AudioRoutes
 import "../.."
 
 // Contents of the bar popouts (network, Wi-Fi password, bluetooth, battery,
@@ -455,6 +457,33 @@ Item {
         }
       }
 
+      // Beyond Caelestia's popout: the links beside the default route --
+      // Tailscale, VPN tunnels, a second wired link (scripts/net-links.sh).
+      property var links: []
+      Timer { interval: 5000; running: true; repeat: true; triggeredOnStart: true; onTriggered: if (!linksProc.running) linksProc.running = true }
+      Process {
+        id: linksProc
+        command: [Qt.resolvedUrl("../../scripts/net-links.sh").toString().replace(/^file:\/\//, "")]
+        stdout: StdioCollector {
+          waitForEnd: true
+          onStreamFinished: netCol.links = String(text || "").split("\n").map(l => l.split("\t")).filter(f => f.length === 2 && f[0] !== "")
+            .map(f => ({ label: f[0], value: f[1] }))
+        }
+      }
+      Repeater {
+        model: netCol.links
+        RowLayout {
+          required property var modelData
+          Layout.fillWidth: true
+          Layout.leftMargin: Tk.padding.small
+          Layout.rightMargin: Tk.padding.small
+          spacing: Tk.spacing.small
+          MIcon { text: modelData.label === "Wired" ? "cable" : "vpn_lock"; color: Colours.m3primary }
+          MText { text: modelData.label; weight: Font.Medium }
+          MText { Layout.fillWidth: true; horizontalAlignment: Text.AlignRight; text: modelData.value; color: Colours.m3onSurfaceVariant; elide: Text.ElideMiddle }
+        }
+      }
+
       ButtonRow {
         Layout.fillWidth: true
         Layout.topMargin: Tk.spacing.extraSmall
@@ -696,12 +725,16 @@ Item {
   Component {
     id: audio
     ColumnLayout {
+      id: audioCol
       width: Tk.sizes.audioWidth
       spacing: Tk.spacing.medium
       readonly property var sink: Pipewire.defaultAudioSink
-      readonly property var nodes: Pipewire.nodes.values.filter(n => n.audio && !n.isStream)
-      function navText(t) { if (t === "m" && sink && sink.audio) sink.audio.muted = !sink.audio.muted }
-      PwObjectTracker { objects: [sink] }
+      readonly property var source: Pipewire.defaultAudioSource
+      function navText(t) {
+        if (t === "m" && sink && sink.audio) sink.audio.muted = !sink.audio.muted
+        if (t === "M" && source && source.audio) source.audio.muted = !source.audio.muted
+      }
+      PwObjectTracker { objects: [sink, source] }
       component Radio: RowLayout {
         id: rb
         property string label
@@ -722,27 +755,120 @@ Item {
         // A RadioButton: the label selects too, not only the circle.
         MText { Layout.fillWidth: true; text: rb.label; elide: Text.ElideRight; TapHandler { onTapped: rb.clicked() } }
       }
+      // The devices as Settings › Audio lists them (AudioService: unplugged
+      // ports left out), and beyond Caelestia's popout: the microphone's
+      // volume, and each playing app's volume and output (AudioRoutes).
+      Component.onCompleted: AudioService.users++
+      Component.onDestruction: AudioService.users--
+      property var graph: ({ sinks: [], routes: ({}) })
+      function moveApp(id, serial) {
+        Quickshell.execDetached(["pw-metadata", String(id), "target.object", serial, "Spa:Id"])
+        routeSettle.restart()
+      }
+      Connections { target: AudioService; function onStreamsChanged() { routeSettle.restart() } }
+      Timer { id: routeSettle; interval: 300; running: true; onTriggered: if (!routeDump.running) routeDump.running = true }
+      Process {
+        id: routeDump
+        command: ["pw-dump"]
+        stdout: StdioCollector { waitForEnd: true; onStreamFinished: audioCol.graph = AudioRoutes.parse(text) }
+      }
+      // Icon (click: mute) and slider on one line.
+      component Level: RowLayout {
+        id: lv
+        property string icon
+        property real value
+        property bool muted
+        signal moved(real value)
+        signal muteClicked()
+        signal wheel(bool up)
+        Layout.fillWidth: true
+        spacing: Tk.spacing.small
+        IconButton { type: "text"; icon: lv.icon; onClicked: lv.muteClicked() }
+        MSlider {
+          Layout.fillWidth: true
+          implicitHeight: Tk.padding.medium * 3
+          value: lv.value
+          enabled: !lv.muted
+          onMoved: v => lv.moved(v)
+          // Caelestia wraps the slider in a wheel area: a step per notch.
+          WheelHandler {
+            acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+            onWheel: e => lv.wheel(e.angleDelta.y > 0)
+          }
+        }
+      }
       Heading { text: "Output device" }
       Repeater {
-        model: parent.nodes.filter(n => n.isSink)
-        Radio { required property var modelData; label: modelData.description || modelData.name; checked: Pipewire.defaultAudioSink === modelData; onClicked: Pipewire.preferredDefaultAudioSink = modelData }
+        model: AudioService.sinks
+        Radio { required property var modelData; label: AudioService.deviceName(modelData); checked: Pipewire.defaultAudioSink === modelData; onClicked: AudioService.setAudioSink(modelData) }
+      }
+      Heading { text: sink && sink.audio ? (sink.audio.muted ? "Volume (muted)" : "Volume (" + Math.round(sink.audio.volume * 100) + "%)") : "Volume" }
+      Level {
+        icon: AudioService.volumeIcon(value, muted)
+        value: sink && sink.audio ? sink.audio.volume : 0
+        muted: !!(sink && sink.audio && sink.audio.muted)
+        onMoved: v => { if (sink && sink.audio) { sink.audio.muted = false; sink.audio.volume = v } }
+        onMuteClicked: if (sink && sink.audio) sink.audio.muted = !sink.audio.muted
+        onWheel: up => Quickshell.execDetached(["omarchy-audio-output-volume", (up ? "+" : "-") + Config.o.services.volumeStep])
+      }
+      Heading { visible: AudioService.streams.length > 0; text: "Apps" }
+      Repeater {
+        model: ScriptModel { values: AudioService.streams }
+        ColumnLayout {
+          id: app
+          required property var modelData
+          readonly property var au: modelData ? modelData.audio : null
+          readonly property string device: audioCol.graph.routes[modelData ? modelData.id : -1] || ""
+          Layout.fillWidth: true
+          spacing: 0
+          RowLayout {
+            Layout.fillWidth: true
+            spacing: Tk.spacing.small
+            MText { Layout.fillWidth: true; text: AudioService.streamName(app.modelData); elide: Text.ElideRight }
+            MText { text: app.au ? (app.au.muted ? "muted" : Math.round(app.au.volume * 100) + "%") : ""; color: Colours.m3outline }
+          }
+          Level {
+            icon: AudioService.volumeIcon(value, muted)
+            value: app.au ? app.au.volume : 0
+            muted: !!(app.au && app.au.muted)
+            onMoved: v => AudioService.setStreamVolume(app.modelData, v)
+            onMuteClicked: if (app.au) app.au.muted = !app.au.muted
+            onWheel: up => AudioService.setStreamVolume(app.modelData, value + (up ? 1 : -1) * Config.o.services.volumeStep / 100)
+          }
+          // Where it plays; a click moves it to the next output.
+          RowLayout {
+            Layout.fillWidth: true
+            visible: audioCol.graph.sinks.length > 1
+            spacing: Tk.spacing.small
+            MIcon { text: "speaker"; color: Colours.m3outline }
+            MText {
+              Layout.fillWidth: true
+              text: AudioService.friendly(AudioRoutes.labelOf(audioCol.graph, app.device)) || "Default output"
+              color: Colours.m3outline
+              font.pointSize: Tk.body.small
+              elide: Text.ElideRight
+            }
+            IconButton { type: "text"; icon: "swap_horiz"; onClicked: audioCol.moveApp(app.modelData.id, AudioRoutes.next(audioCol.graph, app.device)) }
+          }
+        }
       }
       Heading { text: "Input device" }
       Repeater {
-        model: parent.nodes.filter(n => !n.isSink)
-        Radio { required property var modelData; label: modelData.description || modelData.name; checked: Pipewire.defaultAudioSource === modelData; onClicked: Pipewire.preferredDefaultAudioSource = modelData }
+        model: AudioService.sources
+        Radio { required property var modelData; label: AudioService.deviceName(modelData); checked: Pipewire.defaultAudioSource === modelData; onClicked: AudioService.setAudioSource(modelData) }
       }
-      Heading { text: sink && sink.audio ? (sink.audio.muted ? "Volume (muted)" : "Volume (" + Math.round(sink.audio.volume * 100) + "%)") : "Volume" }
-      MSlider {
-        Layout.fillWidth: true
-        implicitHeight: Tk.padding.medium * 3
-        value: sink && sink.audio ? sink.audio.volume : 0
-        onMoved: v => { if (sink && sink.audio) { sink.audio.muted = false; sink.audio.volume = v } }
-        // Caelestia wraps the slider in a wheel area: a step per notch.
-        WheelHandler {
-          acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
-          onWheel: e => Quickshell.execDetached(["omarchy-audio-output-volume", (e.angleDelta.y > 0 ? "+" : "-") + Config.o.services.volumeStep])
-        }
+      Heading {
+        visible: !!(source && source.audio)
+        text: source && source.audio ? (source.audio.muted ? "Microphone (muted)" : "Microphone (" + Math.round(source.audio.volume * 100) + "%)") : "Microphone"
+      }
+      Level {
+        visible: !!(source && source.audio)
+        icon: AudioService.micIcon(value, muted)
+        value: source && source.audio ? source.audio.volume : 0
+        muted: !!(source && source.audio && source.audio.muted)
+        onMoved: v => AudioService.setSourceVolume(v)
+        onMuteClicked: AudioService.setSourceMuted(!muted)
+        onWheel: up => AudioService.setSourceVolume(value + (up ? 1 : -1) * Config.o.services.volumeStep / 100)
       }
       // Caelestia pads the audio popout by padding.medium below its layout.
       WideButton { Layout.bottomMargin: Tk.padding.medium; icon: "settings"; label: "Open settings"; onClicked: { root.host.toggle("settings", "audio"); root.closeRequested() } }

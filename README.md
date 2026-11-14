@@ -21,6 +21,7 @@ A [Caelestia](https://github.com/caelestia-dots/shell)-style desktop shell for [
 - **Bar**: workspaces, active window, tray, clock, status icons, popouts
   - Any edge, per-screen position
   - Drag items to start / center / end
+  - **This fork also adds**: real app logos in the workspace pill (Settings › Workspaces › App logos); per-app volume, output and microphone in the audio popout; Tailscale / VPN / second wired link in the network popout; and Settings › Display without hyprmoncfg (arrange, layout, resolution, scale, Remember, each change behind keep-or-go-back)
   - **Environments** (this fork, after [Island](https://github.com/CaioNazario/island-omarchy)): up to six named bar layouts; switch with `SUPER + CTRL + ALT + ←/→`, a sideways scroll over the bar, or Settings › Taskbar › Environments
 - **Taskbar apps** (opt-in): pin apps, app groups and folders; focus running apps, reorder pins and use per-app menus ([guide](docs/taskbar-apps.md))
 - **Pickers**: wallpaper and theme carousels, "From wallpaper" via aether

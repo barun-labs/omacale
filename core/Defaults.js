@@ -32,7 +32,7 @@ var values = {
     logo: true,
     logoIcon: "omarchy",   // see Logos.js
     power: true,
-    workspaces: { shown: 5, display: "shapes", activeIndicator: true, activeTrail: true, occupiedBg: false, showWindows: true, maxWindowIcons: 5, specialDisplay: "icons", specialShowWindows: true },
+    workspaces: { shown: 5, display: "shapes", activeIndicator: true, activeTrail: true, occupiedBg: false, showWindows: true, maxWindowIcons: 5, appLogos: false, specialDisplay: "icons", specialShowWindows: true },
     activeWindow: { enabled: true, compact: false },
     apps: { enabled: false, showRunning: true, useAvailableSpace: true, showSettings: false, maxShown: 8, items: [] },
     tray: { enabled: true, background: false, recolour: false, compact: false, hiddenIcons: [] },

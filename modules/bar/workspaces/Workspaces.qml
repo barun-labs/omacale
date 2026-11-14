@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Effects
 import Quickshell
+import Quickshell.Widgets
 import Quickshell.Hyprland
 import "../../.."
 
@@ -238,16 +239,34 @@ Rectangle {
               // A ScriptModel keeps the delegates of windows that stay, so a
               // window opening elsewhere doesn't blink every icon.
               model: ScriptModel { values: ws.hasWindows ? ws.toplevels.slice(0, root.cfg.maxWindowIcons) : [] }
-              MIcon {
+              Item {
+                id: win
                 required property var modelData
-                width: root.vertical ? parent.width : implicitWidth
-                height: root.vertical ? implicitHeight : parent.height
-                grade: 0
-                text: Sys.appIcon(modelData.wayland ? modelData.wayland.appId : (modelData.lastIpcObject || {}).class, "terminal")
-                color: Colours.m3onSurfaceVariant
+                // bar.workspaces.appLogos: the app's own icon, found as the
+                // overview finds it (WindowIcons), instead of Caelestia's
+                // category glyph; the glyph stays where no icon is found.
+                readonly property var ipc: modelData.lastIpcObject || {}
+                readonly property string logo: !root.cfg.appLogos ? ""
+                  : WindowIcons.source({ class: ipc.class, initialClass: ipc.initialClass, title: ipc.title, initialTitle: ipc.initialTitle })
+                width: root.vertical ? parent.width : iconRef.implicitWidth
+                height: root.vertical ? iconRef.implicitHeight : parent.height
                 opacity: 0
                 Component.onCompleted: opacity = 1
                 Behavior on opacity { Anim { type: "effects" } }
+                MIcon {
+                  anchors.centerIn: parent
+                  visible: win.logo === "" || logoImage.status === Image.Error
+                  grade: 0
+                  text: Sys.appIcon(win.modelData.wayland ? win.modelData.wayland.appId : win.ipc.class, "terminal")
+                  color: Colours.m3onSurfaceVariant
+                }
+                IconImage {
+                  id: logoImage
+                  anchors.centerIn: parent
+                  visible: win.logo !== "" && status !== Image.Error
+                  implicitSize: Math.round(root.iconLen * 0.8)
+                  source: win.logo
+                }
               }
             }
           }

@@ -124,6 +124,8 @@ QtObject {
           property bool occupiedBg: false
           property bool showWindows: true
           property int maxWindowIcons: 5
+          // Each window as its own app icon rather than a category glyph.
+          property bool appLogos: false
           property string specialDisplay: "icons"
           property bool specialShowWindows: true
         }

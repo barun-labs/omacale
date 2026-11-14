@@ -51,7 +51,7 @@ ColumnLayout {
           : "Read from Hyprland"
         subtext: DisplayService.backend === "hyprmoncfg" ? "Layouts follow your displays on hotplug, lid and resume"
           : DisplayService.backend === "unmanaged" ? "Let it manage them to save layouts per set of displays"
-          : "Arranging displays, modes and profiles need hyprmoncfg"
+          : "Arrange, modes and scale below work without it; profiles need hyprmoncfg"
       }
       IconTextButton {
         visible: DisplayService.backend === "unmanaged"
@@ -67,8 +67,17 @@ ColumnLayout {
     }
   }
 
+  // ---- without hyprmoncfg: arrange, layout and modes through hyprctl
+  // (pages/DirectDisplays.qml), each change behind its own keep-or-go-back.
+  DirectDisplays {
+    Layout.fillWidth: true
+    Layout.topMargin: Tk.spacing.small
+    visible: DisplayService.backend !== "hyprmoncfg"
+    settings: root.settings
+  }
+
   // ---- the arrangement
-  SectionHeader { row: ({ text: "Arrangement" }) }
+  SectionHeader { row: ({ text: DisplayService.backend === "hyprmoncfg" ? "Arrangement" : "Overview" }) }
   ConnectedRect {
     id: canvasCard
     Layout.fillWidth: true

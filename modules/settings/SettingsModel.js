@@ -434,6 +434,7 @@ var subpages = {
       { type: "toggle", key: "bar.workspaces.activeTrail", label: "Active trail", subtext: "The indicator's trailing edge lags behind" },
       { type: "toggle", key: "bar.workspaces.occupiedBg", label: "Occupied background", subtext: "Highlight runs of occupied workspaces" },
       { type: "toggle", key: "bar.workspaces.showWindows", label: "Show windows", subtext: "Show icons of open windows on each workspace" },
+      { type: "toggle", key: "bar.workspaces.appLogos", when: { key: "bar.workspaces.showWindows", value: true }, label: "App logos", subtext: "Each window as its own app icon instead of a category symbol" },
       { type: "stepper", key: "bar.workspaces.maxWindowIcons", label: "Max window icons", from: 0, to: 10, step: 1 },
       { type: "section", text: "Special workspaces" },
       { type: "select", key: "bar.workspaces.specialDisplay", label: "Display", subtext: "How the scratchpad and other special workspaces are drawn while one is open", options: [
