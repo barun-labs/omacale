@@ -21,6 +21,7 @@ A [Caelestia](https://github.com/caelestia-dots/shell)-style desktop shell for [
 - **Bar**: workspaces, active window, tray, clock, status icons, popouts
   - Any edge, per-screen position
   - Drag items to start / center / end
+  - **Environments** (this fork, after [Island](https://github.com/CaioNazario/island-omarchy)): up to six named bar layouts; switch with `SUPER + CTRL + ALT + ←/→`, a sideways scroll over the bar, or Settings › Taskbar › Environments
 - **Taskbar apps** (opt-in): pin apps, app groups and folders; focus running apps, reorder pins and use per-app menus ([guide](docs/taskbar-apps.md))
 - **Pickers**: wallpaper and theme carousels, "From wallpaper" via aether
 - **Display** (Settings › Display):
@@ -134,6 +135,8 @@ omarchy-shell omacale settingsPage <page>
 omarchy-shell omacale popout <network|bluetooth|audio|battery|kblayout|lockstatus|update|activewindow>
 omarchy-shell omacale taskbarAppsStatus  # enabled state, app/pin counts and screen readiness
 omarchy-shell omacale scale <omarchy|0.5-2|50%-200%>
+omarchy-shell omacale environment <next|prev|index|name>   # this fork: switch bar environment; anything else lists them
+omarchy-shell omacale position <left|right|top|bottom|omarchy>   # this fork: move the bar
 omarchy-shell omacale toast <info|success|warning|error> <title> <message> <icon>
 ```
 

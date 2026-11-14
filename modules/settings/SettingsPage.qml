@@ -30,7 +30,7 @@ ColumnLayout {
     wallpapers: "pages/WallpaperGrid.qml", apps: "pages/AppsPage.qml", allApps: "pages/AllApps.qml", appInfo: "pages/AppInfo.qml",
     plugins: "pages/PluginsPage.qml", pluginInfo: "pages/PluginInfo.qml",
     taskbarApps: "pages/TaskbarAppsPage.qml", taskbarAppPicker: "pages/TaskbarAppPicker.qml",
-    trayIcons: "pages/TrayIcons.qml", barLayout: "pages/LayoutPage.qml",
+    trayIcons: "pages/TrayIcons.qml", barLayout: "pages/LayoutPage.qml", environments: "pages/EnvironmentsCard.qml",
     sessionPicture: "cards/SessionPicture.qml", sessionButtons: "cards/SessionButtons.qml",
     screens: "pages/ScreensCard.qml", screenSelect: "rows/ScreenSelect.qml",
     display: "pages/DisplayPage.qml", displayProfiles: "pages/DisplayProfiles.qml", displayWorkspaces: "pages/DisplayWorkspaces.qml",

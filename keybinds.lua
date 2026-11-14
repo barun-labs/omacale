@@ -29,6 +29,15 @@ o.bind("SUPER + SHIFT + I", "Omacale settings", "omarchy-shell omacale settings"
 o.bind("SUPER + ALT + D", "Omacale media", "omarchy-shell omacale dashboardTab media")
 o.bind("SUPER + ALT + P", "Omacale performance", "omarchy-shell omacale dashboardTab performance")
 
+-- ── Environments ────────────────────────────────────────────────────────────
+-- Named bar layouts (Settings › Taskbar › Environments), Island's keys.
+
+o.bind("SUPER + CTRL + ALT + RIGHT", "Omacale next environment", "omarchy-shell omacale environment next")
+o.bind("SUPER + CTRL + ALT + LEFT", "Omacale previous environment", "omarchy-shell omacale environment prev")
+-- The bar on the top edge or back on the left (Settings › Taskbar › Position).
+o.bind("SUPER + CTRL + ALT + UP", "Omacale bar on top", "omarchy-shell omacale position top")
+o.bind("SUPER + CTRL + ALT + DOWN", "Omacale bar on the left", "omarchy-shell omacale position left")
+
 -- ── Keyboard ────────────────────────────────────────────────────────────────
 -- Omarchy's own SUPER + CTRL + A/B/W/P and 1..9 already open Omacale's popouts
 -- (1..9 count the third-party widgets in the plugin pill). This one is the

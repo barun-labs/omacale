@@ -5,6 +5,7 @@ import Quickshell.Io
 import Quickshell.Bluetooth
 import ".."
 import "../core/BarLayout.js" as BarLayout
+import "../core/Environments.js" as Environments
 
 // Settings › Plugins: every Omarchy shell plugin, built-in and third-party.
 // Omarchy is the engine: `omarchy plugin list --json` says what is enabled
@@ -128,6 +129,48 @@ QtObject {
     Config.set("bar.layout.removed", l.removed || [])
     Config.set("bar.layout.drawer", l.drawer || [])
   }
+  // Environments (Settings › Taskbar › Environments, IPC `environment`):
+  // named bar layouts, Island's environments. core/Environments.js does the
+  // bookkeeping; the bar itself only ever sees bar.layout change.
+  readonly property var envState: {
+    const e = Config.o.bar.environments
+    return { active: e.active, names: Array.from(e.names), layouts: Array.from(e.layouts) }
+  }
+  readonly property var environments: Environments.names(envState)
+  readonly property int environment: Environments.normal(envState).active
+  readonly property int maxEnvironments: Environments.MAX
+  function envBar() {
+    const l = barLayout()
+    l.hidden = Array.from(Config.o.bar.layout.hidden)
+    return l
+  }
+  function envApply(r) {
+    if (!r) return false
+    Config.set("bar.environments.names", r.state.names)
+    Config.set("bar.environments.layouts", r.state.layouts)
+    Config.set("bar.environments.active", r.state.active)
+    if (r.layout) {
+      setBarLayout(r.layout)
+      Config.set("bar.layout.hidden", r.layout.hidden)
+    }
+    return true
+  }
+  // next | prev | an index | a name. Says which one with a toast.
+  function switchEnvironment(arg) {
+    const ok = envApply(Environments.switchTo(envState, envBar(), Environments.indexOf(envState, arg)))
+    if (ok) Toaster.toast("Environment", environments[environment], "dashboard_customize", Toaster.info, 0, "environment")
+    return ok
+  }
+  // A copy of the bar as it is, or with `focus` a bar of only the logo,
+  // workspaces, clock, recording dot and power button.
+  function addEnvironment(name, focus) {
+    const all = Object.keys(BarLayout.ITEMS).concat(barWidgets.map(p => p.id))
+    return envApply(Environments.add(envState, envBar(), name,
+      focus ? Environments.minimal(envBar(), all, ["logo", "workspaces", "clock", "recording", "power"]) : null))
+  }
+  function removeEnvironment(index) { return envApply(Environments.remove(envState, index)) }
+  function renameEnvironment(index, name) { return envApply(Environments.rename(envState, index, name)) }
+
   // Moving an item in Settings: a pill widget dropped on "Not in the bar"
   // goes back into the pill.
   function placeItem(id, list, index) {

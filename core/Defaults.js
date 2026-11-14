@@ -42,7 +42,9 @@ var values = {
     clock: { enabled: true, showIcon: true, showDate: false, showSeconds: false, background: false },
     status: { lockStatus: true, audio: false, microphone: false, network: true, bluetooth: true, battery: true, keepAwake: true, update: true, notifications: true, bluetoothConnectedOnly: false, microphoneInUseOnly: false, kbLayout: false },
     popouts: { statusIcons: true, tray: true, activeWindow: true },
-    scroll: { workspaces: true, volume: true, brightness: true }
+    scroll: { workspaces: true, volume: true, brightness: true, environments: true },
+    // Settings › Taskbar › Environments (core/Environments.js).
+    environments: { active: 0, names: [], layouts: [] }
   },
   dashboard: {
     enabled: true, showOnHover: true, clockSeconds: false, mediaGif: true, lyrics: true, visualiser: true,

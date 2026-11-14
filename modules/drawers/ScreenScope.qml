@@ -1389,7 +1389,7 @@ Scope {
         if (!scope.popoutSticky) scope.popout = ""
         scope.barHover = false
       }
-      onWheel: e => { if (!scope.barOff && barDepth(e.x, e.y) < win.bw) bar.handleWheel(barAlong(e.x, e.y), e.angleDelta.y) }
+      onWheel: e => { if (!scope.barOff && barDepth(e.x, e.y) < win.bw) (Math.abs(e.angleDelta.x) > Math.abs(e.angleDelta.y) ? bar.handleWheelAcross(e.angleDelta.x) : bar.handleWheel(barAlong(e.x, e.y), e.angleDelta.y)) }
       onPositionChanged: e => {
         if (win.fs > 0) return
         // With Settings open the bar's groups (the chevron, the compact tray)

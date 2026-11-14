@@ -452,6 +452,20 @@ Item {
     else if (cfg.scroll.brightness) DisplayService.stepBrightness(screen.name, dy > 0 ? "+" + svc.brightnessStep + "%" : svc.brightnessStep + "%-")
   }
 
+  // Sideways over the bar (two fingers on a touchpad, a tilting wheel):
+  // the next / previous environment, as Island's bar. One step per notch
+  // (120), and one per gesture: a swipe's trailing deltas are dropped.
+  property real wheelAcross: 0
+  function handleWheelAcross(dx) {
+    if (!cfg.scroll.environments || PluginService.environments.length < 2 || acrossRest.running) return
+    wheelAcross += dx
+    if (Math.abs(wheelAcross) < 120) return
+    PluginService.switchEnvironment(wheelAcross < 0 ? "next" : "prev")
+    wheelAcross = 0
+    acrossRest.restart()
+  }
+  Timer { id: acrossRest; interval: 400; onTriggered: root.wheelAcross = 0 }
+
   // Shared by the clock entry (ClockEntry reads bar.sysClock).
   property alias sysClock: clock
   SystemClock { id: clock; precision: root.cfg.clock.showSeconds ? SystemClock.Seconds : SystemClock.Minutes }

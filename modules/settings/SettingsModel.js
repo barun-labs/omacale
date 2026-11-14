@@ -402,7 +402,10 @@ var subpages = {
       { type: "nav", icon: "apps", label: "Apps", subtext: "Optional dock: pinned apps, groups and folders", page: "taskbarApps", status: "bar.apps.enabled" },
       { type: "section", text: "Bar" },
       { type: "custom", comp: "barLayout" },
+      { type: "section", text: "Environments" },
+      { type: "custom", comp: "environments" },
       { type: "section", text: "Scroll actions" },
+      { type: "toggle", key: "bar.scroll.environments", label: "Environments", subtext: "Scroll sideways over the bar to switch environments" },
       { type: "toggle", key: "bar.scroll.workspaces", label: "Workspaces", subtext: "Scroll over the workspace indicator to switch workspaces" },
       { type: "toggle", key: "bar.scroll.volume", label: "Volume", subtext: "Scroll on the top half of the bar to adjust volume" },
       { type: "nav", icon: "brightness_6", label: "Brightness", subtext: "Scrolling on the bottom half, and its step: in Display › Brightness", page: "displayBrightness" }

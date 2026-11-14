@@ -667,6 +667,20 @@ Item {
       }
       return Config.o.appearance.scale.source + " " + Tk.uiScale.toFixed(2)
     }
+    // The bar's edge (Settings › Taskbar › Position): left | right | top |
+    // bottom | omarchy sets it; anything else only prints it.
+    function position(edge: string): string {
+      const e = edge.trim().toLowerCase()
+      if (["left", "right", "top", "bottom", "omarchy"].indexOf(e) >= 0) Config.set("bar.position", e)
+      return Config.o.bar.position
+    }
+    // Bar environments (Settings › Taskbar › Environments): next | prev | an
+    // index | a name switches; anything else (or nothing to switch to) only
+    // prints them, the active one starred.
+    function environment(which: string): string {
+      PluginService.switchEnvironment(which)
+      return PluginService.environments.map((n, i) => (i === PluginService.environment ? "* " : "  ") + n).join("\n")
+    }
     // Caelestia's `toaster` IPC (Shortcuts.qml info/success/warn/error) as
     // one call: type is info, success, warning or error; an empty icon takes
     // the type's own.

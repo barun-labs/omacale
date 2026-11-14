@@ -218,6 +218,16 @@ QtObject {
           property bool workspaces: true
           property bool volume: true
           property bool brightness: true
+          // Sideways over the bar: the next / previous environment.
+          property bool environments: true
+        }
+        // Named bar layouts to switch between (core/Environments.js): Island's
+        // environments. layouts[i] is names[i]'s layout as JSON; no names is
+        // the one implicit "Default".
+        property JsonObject environments: JsonObject {
+          property int active: 0
+          property list<string> names: []
+          property list<string> layouts: []
         }
       }
       property JsonObject dashboard: JsonObject {
